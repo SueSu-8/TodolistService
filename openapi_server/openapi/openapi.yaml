@@ -1,0 +1,251 @@
+openapi: 3.0.0
+info:
+  description: "This is a sample server Petstore server. For this sample, you can\
+    \ use the api key `special-key` to test the authorization filters."
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  title: Todolist OpenAPI 3.0 Specification
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+- url: http://localhost:80
+tags:
+- description: user profile operations
+  name: UserProfile
+- description: todo operations
+  name: Task
+paths:
+  /Task:
+    get:
+      description: (no filtering yet; no pagination yet)
+      operationId: list_task
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Task'
+                type: array
+          description: successfully listed tasks
+      security:
+      - jwtToken: []
+      summary: Lists all tasks belonging to the user
+      tags:
+      - Task
+      x-openapi-router-controller: openapi_server.controllers.task_controller
+  /Task/{taskId}:
+    delete:
+      operationId: delete_task
+      parameters:
+      - description: uuid for task
+        explode: false
+        in: path
+        name: taskId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: successfully deleted task
+        "404":
+          description: task does not exist
+      security:
+      - jwtToken: []
+      summary: Delete a task
+      tags:
+      - Task
+      x-openapi-router-controller: openapi_server.controllers.task_controller
+    post:
+      operationId: create_task
+      parameters:
+      - description: uuid for task
+        explode: false
+        in: path
+        name: taskId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/TaskRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+          description: successfully created task
+        "400":
+          description: invalid request parameters (should leave id blank)
+        "404":
+          description: task does not exist
+      security:
+      - jwtToken: []
+      summary: Create a new task
+      tags:
+      - Task
+      x-openapi-router-controller: openapi_server.controllers.task_controller
+    put:
+      operationId: update_task
+      parameters:
+      - description: uuid for task
+        explode: false
+        in: path
+        name: taskId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/TaskRequest'
+      responses:
+        "200":
+          description: successfully updated task
+        "400":
+          description: invalid request parameters
+        "404":
+          description: task does not exist
+      security:
+      - jwtToken: []
+      summary: Update a task
+      tags:
+      - Task
+      x-openapi-router-controller: openapi_server.controllers.task_controller
+  /UserProfile:
+    delete:
+      description: This can only be done by a logged in user and will use the auth
+        token
+      operationId: delete_user_profile
+      responses:
+        "200":
+          description: successfully deleted user-profile
+      security:
+      - jwtToken: []
+      summary: Delete the current user-profile. Note this is permanent!
+      tags:
+      - UserProfile
+      x-openapi-router-controller: openapi_server.controllers.user_profile_controller
+    get:
+      description: This can only be done by a logged in user and will use the auth
+        token
+      operationId: describe_user_profile
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: successfully retrieved user-profile
+      security:
+      - jwtToken: []
+      summary: Read the current user-profile
+      tags:
+      - UserProfile
+      x-openapi-router-controller: openapi_server.controllers.user_profile_controller
+    post:
+      description: This can only be done once by a new user
+      operationId: create_user_profile
+      requestBody:
+        $ref: '#/components/requestBodies/UserProfileRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: successfully created user-profile
+        "400":
+          description: invalid request parameters (email must be properly formatted)
+        "409":
+          description: user-profile already exists
+      security:
+      - jwtToken: []
+      summary: Create a new user-profile
+      tags:
+      - UserProfile
+      x-openapi-router-controller: openapi_server.controllers.user_profile_controller
+    put:
+      description: This can only be done by a logged in user and will use the auth
+        token
+      operationId: update_user_profile
+      requestBody:
+        $ref: '#/components/requestBodies/UserProfileRequest'
+      responses:
+        "200":
+          description: successfully updated user-profile
+        "400":
+          description: invalid request parameters (cannot update userProfileId or
+            email)
+      security:
+      - jwtToken: []
+      summary: Update the current user-profile
+      tags:
+      - UserProfile
+      x-openapi-router-controller: openapi_server.controllers.user_profile_controller
+components:
+  requestBodies:
+    UserProfileRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserProfile'
+    TaskRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Task'
+  schemas:
+    UserProfile:
+      description: A user's profile.
+      example:
+        name: name
+        email: email
+      properties:
+        email:
+          title: email
+          type: string
+        name:
+          title: name
+          type: string
+      title: UserProfile
+      type: object
+    Task:
+      description: A todo task.
+      example:
+        dueDate: 2000-01-23
+        description: description
+        completed: true
+        title: title
+        taskId: taskId
+      properties:
+        taskId:
+          title: taskId
+          type: string
+        title:
+          title: title
+          type: string
+        description:
+          title: description
+          type: string
+        dueDate:
+          format: date
+          title: dueDate
+          type: string
+        completed:
+          title: completed
+          type: boolean
+      required:
+      - taskId
+      title: Task
+      type: object
+  securitySchemes:
+    jwtToken:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+      x-bearerInfoFunc: openapi_server.controllers.security_controller_.info_from_jwtToken

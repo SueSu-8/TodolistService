@@ -1,0 +1,215 @@
+openapi: 3.0.0
+servers:
+  - url: 'http://localhost:80'
+info:
+  description: >-
+    This is a sample server Petstore server. For this sample, you can use the api key
+    `special-key` to test the authorization filters.
+  version: 1.0.0
+  title: Todolist OpenAPI 3.0 Specification
+  license:
+    name: Apache-2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: UserProfile
+    description: user profile operations
+  - name: Task
+    description: todo operations
+paths:
+  /UserProfile:
+    post:
+      tags:
+        - UserProfile
+      summary: Create a new user-profile
+      description: This can only be done once by a new user
+      operationId: CreateUserProfile
+      requestBody:
+        $ref: '#/components/requestBodies/UserProfileRequest'
+      responses:
+        '200':
+          description: successfully created user-profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: invalid request parameters (email must be properly formatted)
+        '409':
+          description: user-profile already exists
+      security:
+        - jwtToken: []
+    get:
+      tags:
+        - UserProfile
+      summary: Read the current user-profile
+      description: This can only be done by a logged in user and will use the auth token
+      operationId: DescribeUserProfile
+      responses:
+        '200':
+          description: successfully retrieved user-profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+      security:
+        - jwtToken: []
+    put:
+      tags:
+        - UserProfile
+      summary: Update the current user-profile
+      description: This can only be done by a logged in user and will use the auth token
+      operationId: UpdateUserProfile
+      requestBody:
+        $ref: '#/components/requestBodies/UserProfileRequest'
+      responses:
+        '200':
+          description: successfully updated user-profile
+        '400':
+          description: invalid request parameters (cannot update userProfileId or email)
+      security:
+        - jwtToken: []
+    delete:
+      tags:
+        - UserProfile
+      summary: Delete the current user-profile. Note this is permanent!
+      description: This can only be done by a logged in user and will use the auth token
+      operationId: DeleteUserProfile
+      responses:
+        '200':
+          description: successfully deleted user-profile
+      security:
+        - jwtToken: []
+  /Task:
+    get:
+      tags:
+        - Task
+      summary: Lists all tasks belonging to the user
+      description: (no filtering yet; no pagination yet)
+      operationId: ListTask
+      responses:
+        '200':
+          description: successfully listed tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+      security:
+        - jwtToken: []
+  /Task/{taskId}:
+    post:
+      tags:
+        - Task
+      summary: Create a new task
+      operationId: CreateTask
+      parameters:
+        - name: taskId
+          in: path
+          description: uuid for task
+          required: true
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/TaskRequest'
+      responses:
+        '200':
+          description: successfully created task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: invalid request parameters (should leave id blank)
+        '404':
+          description: task does not exist
+      security:
+        - jwtToken: []
+    put:
+      tags:
+        - Task
+      summary: Update a task
+      operationId: UpdateTask
+      parameters:
+        - name: taskId
+          in: path
+          description: uuid for task
+          required: true
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/TaskRequest'
+      responses:
+        '200':
+          description: successfully updated task
+        '400':
+          description: invalid request parameters
+        '404':
+          description: task does not exist  
+      security:
+        - jwtToken: []
+    delete:
+      tags:
+        - Task
+      summary: Delete a task
+      operationId: DeleteTask
+      parameters:
+        - name: taskId
+          in: path
+          description: uuid for task
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successfully deleted task
+        '404':
+          description: task does not exist
+      security:
+        - jwtToken: []
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+components:
+  requestBodies:
+    UserProfileRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserProfile'
+    TaskRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Task'
+  securitySchemes:
+    jwtToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserProfile:
+      description: A user's profile.
+      type: object
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+    Task:
+      description: A todo task.
+      type: object
+      required:
+        - taskId
+      properties:
+        taskId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        dueDate:
+          type: string
+          format: date
+        completed:
+          type: boolean
